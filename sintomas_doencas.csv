@@ -1,0 +1,9 @@
+doenca,febre,dor_cabeca,dor_articular,dor_muscular,manchas_pele,dor_olhos,tosse,nausea_vomito,dor_garganta,congestao_nasal
+Dengue,alta,forte,leve,forte,frequente,forte,ausente,frequente,ausente,ausente
+Zika,baixa,leve,moderada,leve,muito_frequente,leve,ausente,raro,ausente,ausente
+Chikungunya,alta,leve,muito_forte,leve,frequente,leve,ausente,raro,ausente,ausente
+Gripe,moderada,moderada,ausente,forte,ausente,ausente,forte,raro,forte,frequente
+COVID-19,alta,forte,ausente,forte,ausente,ausente,seca,raro,forte,ausente
+Resfriado,ausente,leve,ausente,ausente,ausente,ausente,leve,ausente,moderada,muito_frequente
+Malaria,muito_alta,forte,moderada,forte,ausente,ausente,ausente,frequente,ausente,ausente
+Leptospirose,alta,muito_forte,ausente,muito_forte,raro,forte,ausente,frequente,ausente,ausente
