@@ -1,5 +1,36 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <title>Sistema Especialista Médico - Diagnóstico Tropical</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@stlite/mountable@0.39.0/build/stlite.css"
+    />
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="stlite"></div>
+    <script src="https://cdn.jsdelivr.net/npm/@stlite/mountable@0.39.0/build/stlite.js"></script>
+    <script>
+      stlite.mount(
+        {
+          requirements: ["pandas", "numpy", "matplotlib", "seaborn"],
+          entrypoint: "app.py",
+          files: {
+            "app.py": `
 import streamlit as st
-import pd as pd
+import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -323,3 +354,21 @@ if df_base is not None:
     2. **NÃO** substitui a consulta com um profissional de saúde.
     3. Em caso de febre alta, dores intensas ou dificuldades respiratórias, **procure uma unidade de saúde imediatamente**.
     """)
+`,
+            "sintomas_doencas.csv": `doenca,febre,dor_cabeca,dor_articular,dor_muscular,manchas_pele,dor_olhos,tosse,nausea_vomito,dor_garganta,congestao_nasal
+Dengue,alta,forte,leve,forte,frequente,forte,ausente,frequente,ausente,ausente
+Zika,baixa,leve,moderada,leve,muito_frequente,leve,ausente,raro,ausente,ausente
+Chikungunya,alta,leve,muito_forte,leve,frequente,leve,ausente,raro,ausente,ausente
+Gripe,moderada,moderada,ausente,forte,ausente,ausente,forte,raro,forte,frequente
+COVID-19,alta,forte,ausente,forte,ausente,ausente,seca,raro,forte,ausente
+Resfriado,ausente,leve,ausente,ausente,ausente,ausente,leve,ausente,moderada,muito_frequente
+Malaria,muito_alta,forte,moderada,forte,ausente,ausente,ausente,frequente,ausente,ausente
+Leptospirose,alta,muito_forte,ausente,muito_forte,raro,forte,ausente,frequente,ausente,ausente
+`,
+          },
+        },
+        document.getElementById("stlite")
+      );
+    </script>
+  </body>
+</html>
