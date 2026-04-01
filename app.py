@@ -218,9 +218,9 @@ if df_base is not None:
         # Layout em abas
         tab1, tab2, tab3, tab4 = st.tabs([
             "Diagnóstico", 
-            "🔍 Análise Detalhada", 
+            "Análise Detalhada", 
             "Distribuição",
-            "📚 Base de Conhecimento"
+            "Base de Conhecimento"
         ])
         
         with tab1:
