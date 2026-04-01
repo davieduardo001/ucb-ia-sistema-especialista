@@ -173,7 +173,7 @@ if df_base is not None:
         'dor_olhos': '👁️ Dor nos Olhos',
         'tosse': '😷 Tosse',
         'nausea_vomito': '🤢 Náusea / Vômito',
-        'dor_garganta': '😮 Dor de Cabeça',
+        'dor_garganta': '😮 Dor de Garganta',
         'congestao_nasal': '👃 Congestão Nasal'
     }
     
