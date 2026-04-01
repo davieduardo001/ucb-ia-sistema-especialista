@@ -1,5 +1,5 @@
 import streamlit as st
-import pd as pd
+import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -19,20 +19,27 @@ st.set_page_config(
 st.markdown("""
     <style>
     .main {
-        background-color: #f8f9fa;
+        background-color: #ffffff;
     }
     .stMetric {
-        background-color: #ffffff;
+        background-color: #f8f9fa;
         padding: 15px;
         border-radius: 10px;
         box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        border: 1px solid #e9ecef;
     }
     .logic-box {
-        background-color: #e3f2fd;
+        background-color: #f1f8ff;
         padding: 20px;
         border-radius: 10px;
         border-left: 5px solid #2196f3;
         margin-bottom: 20px;
+    }
+    .sidebar-footer {
+        position: fixed;
+        bottom: 20px;
+        font-size: 12px;
+        color: #6c757d;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -184,6 +191,16 @@ if df_base is not None:
     for sintoma in se.sintomas_disponiveis:
         label = DESCRICOES_SINTOMAS.get(sintoma, sintoma.replace('_', ' ').title())
         sintomas_input[sintoma] = st.sidebar.slider(label, 1, 5, 1, key=sintoma)
+    
+    # Rodapé com Autores
+    st.sidebar.markdown("---")
+    st.sidebar.markdown("""
+    **✍️ Autores:**
+    - Davi Eduardo
+    - Vitória Cordeiro
+    - Nathália Gualberto
+    - Caio Queiroz
+    """)
     
     # Executar Diagnóstico
     resultados = se.diagnosticar(sintomas_input)
