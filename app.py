@@ -145,7 +145,7 @@ with st.expander("ℹ️ Sobre o Sistema e a Lógica de Inferência", expanded=F
     Diferente de sistemas tradicionais que usam apenas **Sim/Não**, este sistema utiliza uma abordagem de 
     **Raciocínio Aproximado** baseada em graus de intensidade (1 a 5).
     
-    1.  **Representação do Conhecimento**: As doenças são armazenadas como "perfis típicos" de sintomas.
+    1.  **Representação do Conhecimento**: As doenças são armazenadas as "perfis típicos" de sintomas.
     2.  **Cálculo de Proximidade (Distância de Manhattan)**:
         - Para cada sintoma, comparamos o valor informado ($V_p$) com o valor esperado na base ($V_e$).
         - Calculamos a distância: $dist = |V_p - V_e|$.
@@ -192,6 +192,10 @@ if df_base is not None:
         label = DESCRICOES_SINTOMAS.get(sintoma, sintoma.replace('_', ' ').title())
         sintomas_input[sintoma] = st.sidebar.slider(label, 1, 5, 1, key=sintoma)
     
+    # Botão para Iniciar Diagnóstico
+    st.sidebar.markdown("---")
+    botao_consultar = st.sidebar.button("🔍 Consultar Diagnóstico", type="primary", use_container_width=True)
+
     # Rodapé com Autores
     st.sidebar.markdown("---")
     st.sidebar.markdown("""
@@ -202,135 +206,142 @@ if df_base is not None:
     - Caio Queiroz
     """)
     
-    # Executar Diagnóstico
-    resultados = se.diagnosticar(sintomas_input)
-    df_resultados = pd.DataFrame(resultados)
+    # Lógica de persistência do diagnóstico
+    if botao_consultar:
+        st.session_state.resultados = se.diagnosticar(sintomas_input)
     
-    # Layout em abas
-    tab1, tab2, tab3, tab4 = st.tabs([
-        "📊 Diagnóstico", 
-        "🔍 Análise Detalhada", 
-        "📈 Distribuição",
-        "📚 Base de Conhecimento"
-    ])
-    
-    with tab1:
-        st.header("🔬 Resultados do Diagnóstico")
+    # Só exibe se houver um diagnóstico realizado
+    if "resultados" in st.session_state:
+        resultados = st.session_state.resultados
+        df_resultados = pd.DataFrame(resultados)
         
-        col1, col2 = st.columns([1, 2])
+        # Layout em abas
+        tab1, tab2, tab3, tab4 = st.tabs([
+            "📊 Diagnóstico", 
+            "🔍 Análise Detalhada", 
+            "📈 Distribuição",
+            "📚 Base de Conhecimento"
+        ])
         
-        with col1:
-            melhor_match = resultados[0]
-            st.metric("Diagnóstico Provável", melhor_match['doenca'])
-            st.metric("Confiança do Sistema", f"{melhor_match['confianca']}%")
+        with tab1:
+            st.header("🔬 Resultados do Diagnóstico")
             
-            st.write("### Ranking de Hipóteses")
-            st.dataframe(df_resultados[['doenca', 'confianca']].rename(
-                columns={'doenca': 'Doença', 'confianca': 'Confiança (%)'}
-            ), use_container_width=True)
+            col1, col2 = st.columns([1, 2])
             
-        with col2:
-            # Gráfico de Ranking (Barra)
-            fig_bar, ax_bar = plt.subplots(figsize=(10, 6))
-            cores = ['#d62728' if i == 0 else '#1f77b4' for i in range(len(df_resultados))]
-            sns.barplot(data=df_resultados, x='confianca', y='doenca', palette=cores, ax=ax_bar)
-            ax_bar.set_title("Probabilidade de Diagnóstico por Doença")
-            ax_bar.set_xlabel("Confiança (%)")
-            ax_bar.set_xlim(0, 100)
-            
-            # Adicionar labels nas barras
-            for i, v in enumerate(df_resultados['confianca']):
-                ax_bar.text(v + 1, i, f"{v}%", va='center')
+            with col1:
+                melhor_match = resultados[0]
+                st.metric("Diagnóstico Provável", melhor_match['doenca'])
+                st.metric("Confiança do Sistema", f"{melhor_match['confianca']}%")
                 
-            st.pyplot(fig_bar)
+                st.write("### Ranking de Hipóteses")
+                st.dataframe(df_resultados[['doenca', 'confianca']].rename(
+                    columns={'doenca': 'Doença', 'confianca': 'Confiança (%)'}
+                ), use_container_width=True)
+                
+            with col2:
+                # Gráfico de Ranking (Barra)
+                fig_bar, ax_bar = plt.subplots(figsize=(10, 6))
+                cores = ['#d62728' if i == 0 else '#1f77b4' for i in range(len(df_resultados))]
+                sns.barplot(data=df_resultados, x='confianca', y='doenca', palette=cores, ax=ax_bar)
+                ax_bar.set_title("Probabilidade de Diagnóstico por Doença")
+                ax_bar.set_xlabel("Confiança (%)")
+                ax_bar.set_xlim(0, 100)
+                
+                # Adicionar labels nas barras
+                for i, v in enumerate(df_resultados['confianca']):
+                    ax_bar.text(v + 1, i, f"{v}%", va='center')
+                    
+                st.pyplot(fig_bar)
 
-    with tab2:
-        st.header("🎯 Análise de Compatibilidade")
-        
-        doenca_principal = resultados[0]['doenca']
-        st.write(f"Comparando seus sintomas com o perfil típico de: **{doenca_principal}**")
-        
-        col_radar, col_contrib = st.columns(2)
-        
-        with col_radar:
-            # Gráfico de Radar
-            perfil_doenca = df_base[df_base['doenca'] == doenca_principal].iloc[0].drop('doenca')
+        with tab2:
+            st.header("🎯 Análise de Compatibilidade")
             
-            categorias = list(sintomas_input.keys())
-            valores_paciente = list(sintomas_input.values())
-            valores_doenca = [perfil_doenca[cat] for cat in categorias]
+            doenca_principal = resultados[0]['doenca']
+            st.write(f"Comparando seus sintomas com o perfil típico de: **{doenca_principal}**")
             
-            N = len(categorias)
-            angulos = [n / float(N) * 2 * pi for n in range(N)]
-            valores_paciente += valores_paciente[:1]
-            valores_doenca += valores_doenca[:1]
-            angulos += angulos[:1]
+            col_radar, col_contrib = st.columns(2)
             
-            fig_radar, ax_radar = plt.subplots(figsize=(8, 8), subplot_kw=dict(projection='polar'))
-            ax_radar.plot(angulos, valores_paciente, 'o-', linewidth=2, label='Seus Sintomas', color='#d62728')
-            ax_radar.fill(angulos, valores_paciente, alpha=0.25, color='#d62728')
-            ax_radar.plot(angulos, valores_doenca, 'o-', linewidth=2, label=f'Perfil: {doenca_principal}', color='#1f77b4')
-            ax_radar.fill(angulos, valores_doenca, alpha=0.25, color='#1f77b4')
-            
-            # Nomes curtos para o radar
-            clean_labels = [label.split()[-1] for label in DESCRICOES_SINTOMAS.values()]
-            ax_radar.set_xticks(angulos[:-1])
-            ax_radar.set_xticklabels(clean_labels, size=10)
-            ax_radar.set_ylim(0, 5)
-            plt.legend(loc='upper right', bbox_to_anchor=(1.1, 1.1))
-            st.pyplot(fig_radar)
-            
-        with col_contrib:
-            # Análise de Contribuição
-            st.write(f"### O que mais contribuiu para este diagnóstico?")
-            contribuicoes = []
-            for s in sintomas_input.keys():
-                prox = 4 - abs(sintomas_input[s] - perfil_doenca[s])
-                contribuicoes.append({
-                    'sintoma': DESCRICOES_SINTOMAS.get(s, s),
-                    'compatibilidade': (prox / 4) * 100
-                })
-            df_contrib = pd.DataFrame(contribuicoes).sort_values('compatibilidade', ascending=False)
-            
-            fig_contrib, ax_contrib = plt.subplots(figsize=(10, 8))
-            cores_contrib = ['#2ecc71' if c >= 75 else '#f39c12' if c >= 50 else '#e74c3c' for c in df_contrib['compatibilidade']]
-            sns.barplot(data=df_contrib, x='compatibilidade', y='sintoma', palette=cores_contrib, ax=ax_contrib)
-            ax_contrib.set_xlim(0, 100)
-            ax_contrib.set_title("Match por Sintoma")
-            st.pyplot(fig_contrib)
+            with col_radar:
+                # Gráfico de Radar
+                perfil_doenca = df_base[df_base['doenca'] == doenca_principal].iloc[0].drop('doenca')
+                
+                categorias = list(sintomas_input.keys())
+                valores_paciente = list(sintomas_input.values())
+                valores_doenca = [perfil_doenca[cat] for cat in categorias]
+                
+                N = len(categorias)
+                angulos = [n / float(N) * 2 * pi for n in range(N)]
+                valores_paciente += valores_paciente[:1]
+                valores_doenca += valores_doenca[:1]
+                angulos += angulos[:1]
+                
+                fig_radar, ax_radar = plt.subplots(figsize=(8, 8), subplot_kw=dict(projection='polar'))
+                ax_radar.plot(angulos, valores_paciente, 'o-', linewidth=2, label='Seus Sintomas', color='#d62728')
+                ax_radar.fill(angulos, valores_paciente, alpha=0.25, color='#d62728')
+                ax_radar.plot(angulos, valores_doenca, 'o-', linewidth=2, label=f'Perfil: {doenca_principal}', color='#1f77b4')
+                ax_radar.fill(angulos, valores_doenca, alpha=0.25, color='#1f77b4')
+                
+                # Nomes curtos para o radar
+                clean_labels = [label.split()[-1] for label in DESCRICOES_SINTOMAS.values()]
+                ax_radar.set_xticks(angulos[:-1])
+                ax_radar.set_xticklabels(clean_labels, size=10)
+                ax_radar.set_ylim(0, 5)
+                plt.legend(loc='upper right', bbox_to_anchor=(1.1, 1.1))
+                st.pyplot(fig_radar)
+                
+            with col_contrib:
+                # Análise de Contribuição
+                st.write(f"### O que mais contribuiu para este diagnóstico?")
+                contribuicoes = []
+                for s in sintomas_input.keys():
+                    prox = 4 - abs(sintomas_input[s] - perfil_doenca[s])
+                    contribuicoes.append({
+                        'sintoma': DESCRICOES_SINTOMAS.get(s, s),
+                        'compatibilidade': (prox / 4) * 100
+                    })
+                df_contrib = pd.DataFrame(contribuicoes).sort_values('compatibilidade', ascending=False)
+                
+                fig_contrib, ax_contrib = plt.subplots(figsize=(10, 8))
+                cores_contrib = ['#2ecc71' if c >= 75 else '#f39c12' if c >= 50 else '#e74c3c' for c in df_contrib['compatibilidade']]
+                sns.barplot(data=df_contrib, x='compatibilidade', y='sintoma', palette=cores_contrib, ax=ax_contrib)
+                ax_contrib.set_xlim(0, 100)
+                ax_contrib.set_title("Match por Sintoma")
+                st.pyplot(fig_contrib)
 
-    with tab3:
-        st.header("📈 Análise de Distribuição e Gaps")
-        
-        # Gráfico de Linha (Evolução das Probabilidades)
-        fig_line, ax_line = plt.subplots(figsize=(12, 5))
-        ax_line.plot(df_resultados['doenca'], df_resultados['confianca'], marker='o', linewidth=2, color='#2E86AB')
-        ax_line.fill_between(range(len(df_resultados)), df_resultados['confianca'], alpha=0.2, color='#2E86AB')
-        ax_line.set_title("Diferenciação entre Hipóteses")
-        ax_line.set_ylabel("Confiança (%)")
-        ax_line.set_ylim(0, 105)
-        plt.xticks(rotation=45)
-        st.pyplot(fig_line)
-        
-        gap = resultados[0]['confianca'] - resultados[1]['confianca']
-        st.info(f"💡 **Gap de Diferenciação**: A primeira hipótese ({resultados[0]['doenca']}) está **{gap:.2f}%** acima da segunda. Quanto maior este gap, mais específico é o seu quadro sintomático.")
+        with tab3:
+            st.header("📈 Análise de Distribuição e Gaps")
+            
+            # Gráfico de Linha (Evolução das Probabilidades)
+            fig_line, ax_line = plt.subplots(figsize=(12, 5))
+            ax_line.plot(df_resultados['doenca'], df_resultados['confianca'], marker='o', linewidth=2, color='#2E86AB')
+            ax_line.fill_between(range(len(df_resultados)), df_resultados['confianca'], alpha=0.2, color='#2E86AB')
+            ax_line.set_title("Diferenciação entre Hipóteses")
+            ax_line.set_ylabel("Confiança (%)")
+            ax_line.set_ylim(0, 105)
+            plt.xticks(rotation=45)
+            st.pyplot(fig_line)
+            
+            gap = resultados[0]['confianca'] - resultados[1]['confianca']
+            st.info(f"💡 **Gap de Diferenciação**: A primeira hipótese ({resultados[0]['doenca']}) está **{gap:.2f}%** acima da segunda. Quanto maior este gap, mais específico é o seu quadro sintomático.")
 
-        # Heatmap Comparativo Geral
-        st.write("### 🌡️ Comparação Visual: Seus Sintomas vs. Todas as Doenças")
-        df_comp = df_base.set_index('doenca').copy()
-        df_comp.loc['VOCÊ'] = pd.Series(sintomas_input)
-        
-        fig_hm, ax_hm = plt.subplots(figsize=(14, 8))
-        sns.heatmap(df_comp.T, annot=True, cmap='RdYlGn_r', linewidths=0.5, ax=ax_hm, vmin=1, vmax=5)
-        st.pyplot(fig_hm)
+            # Heatmap Comparativo Geral
+            st.write("### 🌡️ Comparação Visual: Seus Sintomas vs. Todas as Doenças")
+            df_comp = df_base.set_index('doenca').copy()
+            df_comp.loc['VOCÊ'] = pd.Series(sintomas_input)
+            
+            fig_hm, ax_hm = plt.subplots(figsize=(14, 8))
+            sns.heatmap(df_comp.T, annot=True, cmap='RdYlGn_r', linewidths=0.5, ax=ax_hm, vmin=1, vmax=5)
+            st.pyplot(fig_hm)
 
-    with tab4:
-        st.header("📊 Inteligência do Sistema")
-        st.write("Abaixo você vê como o sistema 'enxerga' cada doença (valores convertidos de 1 a 5).")
-        st.dataframe(df_base.style.background_gradient(cmap='YlOrRd', axis=None), use_container_width=True)
-        
-        with st.expander("Ver Base de Dados Original (Texto)"):
-            st.dataframe(df_original, use_container_width=True)
+        with tab4:
+            st.header("📊 Inteligência do Sistema")
+            st.write("Abaixo você vê como o sistema 'enxerga' cada doença (valores convertidos de 1 a 5).")
+            st.dataframe(df_base.style.background_gradient(cmap='YlOrRd', axis=None), use_container_width=True)
+            
+            with st.expander("Ver Base de Dados Original (Texto)"):
+                st.dataframe(df_original, use_container_width=True)
+    else:
+        st.info("👈 Ajuste os sintomas na barra lateral e clique em **Consultar Diagnóstico** para ver os resultados.")
 
     # Disclaimer de Segurança
     st.error("""
