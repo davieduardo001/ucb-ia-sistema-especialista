@@ -10,7 +10,7 @@ from math import pi
 # ==============================================================================
 st.set_page_config(
     page_title="Sistema Especialista Médico - Diagnóstico Tropical",
-    page_icon="🩺",
+    page_icon=None,
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -136,12 +136,12 @@ class SistemaEspecialistaMedico:
 # 4. INTERFACE DO USUÁRIO (STREAMLIT)
 # ==============================================================================
 
-st.title("🩺 Sistema Especialista para Diagnóstico de Doenças Tropicais")
+st.title("Sistema Especialista para Diagnóstico de Doenças Tropicais")
 
 # Introdução e Explicação da Lógica
 with st.expander("ℹ️ Sobre o Sistema e a Lógica de Inferência", expanded=False):
     st.markdown("""
-    ### 🧠 Como este sistema "pensa"? (Lógica Fuzzy-like)
+    ### Como este sistema "pensa"? (Lógica Fuzzy-like)
     Diferente de sistemas tradicionais que usam apenas **Sim/Não**, este sistema utiliza uma abordagem de 
     **Raciocínio Aproximado** baseada em graus de intensidade (1 a 5).
     
@@ -152,7 +152,7 @@ with st.expander("ℹ️ Sobre o Sistema e a Lógica de Inferência", expanded=F
         - Atribuímos uma pontuação inversamente proporcional à distância.
     3.  **Agregação**: Somamos as pontuações de todos os sintomas para gerar um índice de confiança final.
     
-    ### 🛡️ Tratamento de Incertezas
+    ### Tratamento de Incertezas
     Esta lógica permite que o sistema identifique doenças mesmo quando o paciente não apresenta a 
     intensidade "exata" descrita nos livros médicos, lidando com a subjetividade da dor e dos sintomas.
     """)
@@ -161,11 +161,11 @@ if df_base is not None:
     se = SistemaEspecialistaMedico(df_base)
     
     # Sidebar para entrada de dados
-    st.sidebar.header("📋 Avaliação de Sintomas")
+    st.sidebar.header("Avaliação de Sintomas")
     st.sidebar.info("Deslize para indicar a intensidade de cada sintoma no seu corpo atual.")
     
     DESCRICOES_SINTOMAS = {
-        'febre': '🌡️ Febre',
+        'febre': 'Febre',
         'dor_cabeca': '🤕 Dor de Cabeça',
         'dor_articular': '🦴 Dor nas Articulações',
         'dor_muscular': '💪 Dor Muscular',
@@ -199,7 +199,7 @@ if df_base is not None:
     # Rodapé com Autores
     st.sidebar.markdown("---")
     st.sidebar.markdown("""
-    **✍️ Autores:**
+    **Autores:**
     - Davi Eduardo
     - Vitória Cordeiro
     - Nathália Gualberto
@@ -217,14 +217,14 @@ if df_base is not None:
         
         # Layout em abas
         tab1, tab2, tab3, tab4 = st.tabs([
-            "📊 Diagnóstico", 
+            "Diagnóstico", 
             "🔍 Análise Detalhada", 
-            "📈 Distribuição",
+            "Distribuição",
             "📚 Base de Conhecimento"
         ])
         
         with tab1:
-            st.header("🔬 Resultados do Diagnóstico")
+            st.header("Resultados do Diagnóstico")
             
             col1, col2 = st.columns([1, 2])
             
@@ -254,7 +254,7 @@ if df_base is not None:
                 st.pyplot(fig_bar)
 
         with tab2:
-            st.header("🎯 Análise de Compatibilidade")
+            st.header("Análise de Compatibilidade")
             
             doenca_principal = resultados[0]['doenca']
             st.write(f"Comparando seus sintomas com o perfil típico de: **{doenca_principal}**")
@@ -309,7 +309,7 @@ if df_base is not None:
                 st.pyplot(fig_contrib)
 
         with tab3:
-            st.header("📈 Análise de Distribuição e Gaps")
+            st.header("Análise de Distribuição e Gaps")
             
             # Gráfico de Linha (Evolução das Probabilidades)
             fig_line, ax_line = plt.subplots(figsize=(12, 5))
@@ -325,7 +325,7 @@ if df_base is not None:
             st.info(f"💡 **Gap de Diferenciação**: A primeira hipótese ({resultados[0]['doenca']}) está **{gap:.2f}%** acima da segunda. Quanto maior este gap, mais específico é o seu quadro sintomático.")
 
             # Heatmap Comparativo Geral
-            st.write("### 🌡️ Comparação Visual: Seus Sintomas vs. Todas as Doenças")
+            st.write("### Comparação Visual: Seus Sintomas vs. Todas as Doenças")
             df_comp = df_base.set_index('doenca').copy()
             df_comp.loc['VOCÊ'] = pd.Series(sintomas_input)
             
@@ -334,7 +334,7 @@ if df_base is not None:
             st.pyplot(fig_hm)
 
         with tab4:
-            st.header("📊 Inteligência do Sistema")
+            st.header("Inteligência do Sistema")
             st.write("Abaixo você vê como o sistema 'enxerga' cada doença (valores convertidos de 1 a 5).")
             st.dataframe(df_base.style.background_gradient(cmap='YlOrRd', axis=None), use_container_width=True)
             
@@ -350,4 +350,10 @@ if df_base is not None:
     1. **NÃO** fornece diagnóstico médico real.
     2. **NÃO** substitui a consulta com um profissional de saúde.
     3. Em caso de febre alta, dores intensas ou dificuldades respiratórias, **procure uma unidade de saúde imediatamente**.
+    """)
+
+else:
+    st.error("❌ Erro Crítico: Arquivo 'sintomas_doencas.csv' não encontrado no diretório raiz.")
+    st.markdown("""
+    Por favor, certifique-se de que o arquivo está na mesma pasta que o `app.py`.
     """)
