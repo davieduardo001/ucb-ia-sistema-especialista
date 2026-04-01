@@ -165,7 +165,7 @@ if df_base is not None:
     st.sidebar.info("Deslize para indicar a intensidade de cada sintoma no seu corpo atual.")
     
     DESCRICOES_SINTOMAS = {
-        'febre': 'Febre',
+        'febre': '🤒 Febre',
         'dor_cabeca': '🤕 Dor de Cabeça',
         'dor_articular': '🦴 Dor nas Articulações',
         'dor_muscular': '💪 Dor Muscular',
